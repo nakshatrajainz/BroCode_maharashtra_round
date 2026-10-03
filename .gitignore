@@ -1,0 +1,7 @@
+.cursor/
+.env
+.env.*
+node_modules/
+.next/
+.vercel/
+dist/
