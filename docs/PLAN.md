@@ -14,13 +14,24 @@ ModelLedger lets a person upload a picture and see whether an allowed company st
 - Three company categories: Maker, Editor, Publisher.
 - Three answers: Trusted, Self-asserted, Unverifiable.
 
+## Two surfaces (not three portals)
+
+There is no separate consumer product and company product with different brands. One site, two jobs:
+
+1. **Public check.** Anyone opens `/check`, uploads a picture, and gets one answer. No login.
+2. **Company workspace.** Someone who stamps pictures signs in, registers on `/register`, and writes lines on `/create`. One account can hold at most one Maker, one Editor, and one Publisher.
+
+**Admin is not a portal.** The keeper wallet on the server is the only admin. It registers and revokes companies on the BNB notebook. Revoke for the demo is a short server script, not a dashboard. Do not build an admin UI unless a judge needs a live revoke click and time remains.
+
 ## What each category may say
 
 - **Maker.** "We created this picture." This is the first line. It does not point at an older line.
 - **Editor.** "We changed this picture." The line must point at an earlier line.
 - **Publisher.** "We posted this picture." The line must point at an earlier line.
 
-A company that does two jobs gets two stamps.
+Each company does exactly one job and has one stamp. A business that does two jobs registers two companies with two different names. One account can hold at most one Maker, one Editor, and one Publisher.
+
+Registering is one step for a new visitor: pick the job, name the company, and make the account in the same form.
 
 ## Phases
 
@@ -32,15 +43,15 @@ Done when someone can open the site and understand the three jobs without readin
 
 ### Phase 1. Company registration
 
-Accounts and stamps now save. A company signs in, picks a category, and receives one stamp. The private half stays on the server. The public shape still needs to be written into the BNB notebook. A company can later be removed from the allowed list. Old lines stay. New lines from a removed company do not count as Trusted.
+Accounts and stamps now save. A company signs in, picks a category, and receives one stamp. The private half stays on the server. When the ledger contract is deployed, registration also writes the public stamp onto the BNB notebook (`chain_tx` on `companies`). A company can later be removed from the allowed list. Old lines stay. New lines from a removed company do not count as Trusted.
 
-Done when Aura can register as a Maker and ScaleKit can register as an Editor, and both appear on the allowed list.
+Done when Aura can register as a Maker and ScaleKit can register as an Editor, and both appear on the allowed list on-chain.
 
 ### Phase 2. A created picture
 
-A prepared picture is stamped by a Maker. The line stores the exact serial number, the look-alike serial number, the hidden id inside the picture, and a sealed envelope of the private sentence. The sentence itself is not stored.
+A Maker stamps a prepared picture on `/create`. The line stores the exact fingerprint, the look-alike fingerprint, the hidden id inside the PNG, and a hash of the sealed private sentence. The sentence itself is not stored in plaintext (`prompt_envelopes` holds only the sealed blob).
 
-Done when that picture can be downloaded and the notebook has its creation line.
+Done offline when that picture can be downloaded and the line exists in Supabase. Done fully when the notebook also has the creation line (`picture_lines.chain_tx`).
 
 ### Phase 3. The check page
 
@@ -90,4 +101,8 @@ The site is on a public Vercel link. The notebook is on the BNB practice network
 
 ## Order of work
 
-Phase 0 is the shell. Phase 1 is next, and it is the registration flow. Do not start the check page until a Maker can write a real line.
+Phase 0 shell is done. Phase 1 accounts and stamps are done. On-chain registration code is ready and **blocked only on free tBNB** for the keeper (see [HANDOFF.md](HANDOFF.md) — no real money). Phase 2 Create works offline (stamp + download); on-chain `writeLine` activates after deploy. Next: Phase 3 Check.
+
+## Testnet gas is free
+
+BNB practice network uses **tBNB**. It is not real money. Get it free via Telegram/Discord — see [HANDOFF.md](HANDOFF.md). Skip any faucet that demands mainnet BNB.

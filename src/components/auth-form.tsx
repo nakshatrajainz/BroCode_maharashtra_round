@@ -2,67 +2,43 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
-import { signIn, signUp, type AuthState } from "@/lib/auth-actions";
+import { signIn, type AuthState } from "@/lib/auth-actions";
 
 const initialState: AuthState = {};
 
-export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
-  const action = mode === "sign-in" ? signIn : signUp;
-  const [state, formAction, pending] = useActionState(action, initialState);
+export function AuthForm() {
+  const [state, formAction, pending] = useActionState(signIn, initialState);
 
   return (
-    <form action={formAction} className="mt-10 grid max-w-md gap-5">
+    <form action={formAction} className="card mt-10 grid max-w-md gap-5 p-6">
       <label className="grid gap-2">
-        <span className="text-sm">Email</span>
-        <input
-          name="email"
-          type="email"
-          autoComplete="email"
-          required
-          className="border border-line bg-white px-3 py-3 outline-none"
-        />
+        <span className="text-sm font-medium">Email</span>
+        <input name="email" type="email" autoComplete="email" required className="field" />
       </label>
       <label className="grid gap-2">
-        <span className="text-sm">Password</span>
+        <span className="text-sm font-medium">Password</span>
         <input
           name="password"
           type="password"
-          autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
+          autoComplete="current-password"
           required
           minLength={8}
-          className="border border-line bg-white px-3 py-3 outline-none"
+          className="field"
         />
       </label>
-      {mode === "sign-up" ? (
-        <label className="grid gap-2">
-          <span className="text-sm">Repeat password</span>
-          <input
-            name="confirm"
-            type="password"
-            autoComplete="new-password"
-            required
-            minLength={8}
-            className="border border-line bg-white px-3 py-3 outline-none"
-          />
-        </label>
+      {state.error ? (
+        <p className="rounded-xl bg-seal-soft px-4 py-3 text-sm text-seal">{state.error}</p>
       ) : null}
-      {state.error ? <p className="text-sm text-seal">{state.error}</p> : null}
-      <button
-        type="submit"
-        disabled={pending}
-        className="w-fit bg-ink px-5 py-3 text-sm text-paper disabled:opacity-60"
-      >
-        {pending ? "Working" : mode === "sign-in" ? "Sign in" : "Create account"}
+      <button type="submit" disabled={pending} className="button">
+        {pending ? "Signing in" : "Sign in"}
       </button>
-      {mode === "sign-in" ? (
-        <p className="text-sm text-muted">
-          New company? <Link href="/sign-up">Create an account</Link>
-        </p>
-      ) : (
-        <p className="text-sm text-muted">
-          Already registered? <Link href="/sign-in">Sign in</Link>
-        </p>
-      )}
+      <p className="text-sm text-muted">
+        New here?{" "}
+        <Link href="/register" className="text-seal underline-offset-4 hover:underline">
+          Register a company
+        </Link>{" "}
+        and the account is made with it.
+      </p>
     </form>
   );
 }

@@ -1,19 +1,27 @@
 @import "tailwindcss";
 
 :root {
-  --paper: #f3efe4;
+  --paper: #f5f1e8;
+  --card: #fffdf8;
   --ink: #1c1915;
-  --muted: #5e584e;
-  --line: #ddd4c4;
+  --muted: #6b6458;
+  --line: #e6dece;
   --seal: #8c2f2a;
+  --seal-soft: #f6e7e2;
+  --leaf: #2f6b4f;
+  --leaf-soft: #e4f0e8;
 }
 
 @theme inline {
   --color-paper: var(--paper);
+  --color-card: var(--card);
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-line: var(--line);
   --color-seal: var(--seal);
+  --color-seal-soft: var(--seal-soft);
+  --color-leaf: var(--leaf);
+  --color-leaf-soft: var(--leaf-soft);
   --font-sans: var(--font-geist-sans);
   --font-serif: var(--font-newsreader);
 }
@@ -22,4 +30,26 @@ body {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-geist-sans), sans-serif;
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-line bg-card shadow-[0_1px_2px_rgba(28,25,21,0.04),0_8px_24px_-12px_rgba(28,25,21,0.12)];
+  }
+
+  .field {
+    @apply w-full rounded-xl border border-line bg-card px-4 py-3 outline-none transition placeholder:text-muted/60 focus:border-seal/50 focus:ring-4 focus:ring-seal/10;
+  }
+
+  .button {
+    @apply inline-flex w-fit items-center justify-center gap-2 rounded-xl bg-ink px-5 py-3 text-sm font-medium text-paper transition hover:bg-ink/85 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .button-quiet {
+    @apply inline-flex w-fit items-center justify-center gap-2 rounded-xl border border-line bg-card px-5 py-3 text-sm font-medium text-ink transition hover:border-ink/30;
+  }
+
+  .eyebrow {
+    @apply text-sm font-medium text-seal;
+  }
 }

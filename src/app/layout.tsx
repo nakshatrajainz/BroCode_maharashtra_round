@@ -21,8 +21,8 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  const email = typeof data?.claims?.email === "string" ? data.claims.email : null;
+  const { data } = await supabase.auth.getUser();
+  const email = data.user?.email ?? null;
 
   return (
     <html lang="en" className={`${geistSans.variable} ${newsreader.variable} h-full antialiased`}>

@@ -16,14 +16,14 @@ const answers = [
 export default function CheckPage() {
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
-      <p className="text-sm text-seal">Check · later phase</p>
+      <p className="eyebrow">Check · public</p>
       <h1 className="mt-3 font-serif text-4xl tracking-tight">Upload a picture. Get one answer.</h1>
       <p className="mt-4 max-w-xl text-lg leading-8 text-muted">
         The check page comes after a real picture line exists. These are the only three answers it will give.
       </p>
       <div className="mt-10 grid gap-4">
         {answers.map((answer) => (
-          <article key={answer.title} className="border border-line bg-white p-5">
+          <article key={answer.title} className="card p-5">
             <h2 className="font-serif text-2xl">{answer.title}</h2>
             <p className="mt-2 text-sm leading-6 text-muted">{answer.body}</p>
           </article>
