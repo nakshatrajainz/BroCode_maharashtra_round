@@ -32,7 +32,7 @@ Done when someone can open the site and understand the three jobs without readin
 
 ### Phase 1. Company registration
 
-A company signs in, picks a category, and receives one stamp. The public shape of the stamp is written in the notebook. The part that presses the stamp stays on the server. The company can later be removed from the allowed list. Old lines stay. New lines from a removed company do not count as Trusted.
+Accounts and stamps now save. A company signs in, picks a category, and receives one stamp. The private half stays on the server. The public shape still needs to be written into the BNB notebook. A company can later be removed from the allowed list. Old lines stay. New lines from a removed company do not count as Trusted.
 
 Done when Aura can register as a Maker and ScaleKit can register as an Editor, and both appear on the allowed list.
 
