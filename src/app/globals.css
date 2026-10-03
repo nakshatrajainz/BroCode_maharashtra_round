@@ -10,6 +10,10 @@
   --seal-soft: #f6e7e2;
   --leaf: #2f6b4f;
   --leaf-soft: #e4f0e8;
+  --warn: #9a6b16;
+  --warn-soft: #f7efd8;
+  --danger: #a11f1f;
+  --danger-soft: #f8e4e4;
 }
 
 @theme inline {
@@ -22,6 +26,10 @@
   --color-seal-soft: var(--seal-soft);
   --color-leaf: var(--leaf);
   --color-leaf-soft: var(--leaf-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
   --font-sans: var(--font-geist-sans);
   --font-serif: var(--font-newsreader);
 }
@@ -51,5 +59,20 @@ body {
 
   .eyebrow {
     @apply text-sm font-medium text-seal;
+  }
+
+  .result-in {
+    animation: result-in 420ms ease-out both;
+  }
+}
+
+@keyframes result-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

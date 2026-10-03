@@ -93,11 +93,19 @@ No admin portal. Keeper wallet = admin.
 | 0 Shell | **Done** | Home, Register, Create, Check render |
 | 1 Accounts + stamps | **Done** | Supabase auth, companies, sealed stamp keys |
 | 1 On-chain register | **Deployed** | Ledger `0x500c480786a6e07347860d9ba784cb3cda545236` on BSC testnet; keeper still has leftover tBNB |
-| 2 Create picture line | **Done offline** | `/create` Maker stamps prepared PNG; download works; chain write when ledger + company `chain_tx` exist |
-| 3 Check page | **Next** | Upload → Trusted / Self-asserted / Unverifiable |
-| 4 Editor + Publisher | Not started | Parent links |
+| 2 Create picture line | **Done** | `/create` accepts PNG upload (or prepared sample); stamps + download; on-chain when company has `chain_tx` |
+| 3 Check page | **Done** | `/check` upload → Trusted / Self-asserted / Unverifiable |
+| 4 Editor + Publisher | **Next** | Parent links |
 | 5 Hard cases | Not started | See cases in `docs/PLAN.md` |
 | 6 Public demo | Not started | Vercel + rehearsed scenes |
+
+## Hackathon pitch (one line)
+
+**Demo the website. Pitch the company API.**
+
+- Judges click: Register → Create (stamp) → Check (Trusted / Self-asserted / Unverifiable)
+- Story: in production, Aura plugs ModelLedger into their generate→deliver pipeline; consumers only ever Check
+- Public notebook on BNB testnet is the record outside our site
 
 ## Exact next steps
 
@@ -108,14 +116,25 @@ No admin portal. Keeper wallet = admin.
 - Deploy used ~0.0001 tBNB; ~0.0999 tBNB left (plenty)
 - **Next:** register a **new** company (old rows have empty `chain_tx`). Then stamp on `/create` and confirm both `companies.chain_tx` and `picture_lines.chain_tx` fill in.
 
-### B. Phase 3 Check (next product work)
+### B. Phase 3 Check — done (hardened)
 
-Anyone uploads a PNG on `/check`. Server extracts hidden id / fingerprints, walks lines, returns one verdict.
+- `/check` — public upload, optional claimed maker name
+- Verdict engine in `src/lib/verdict.ts` (hidden id → exact → lookalike lookup; company join normalized; story lines oldest→newest)
+- Honest stamped file → Trusted
+- Unknown file + claim name → Self-asserted
+- Unknown file, no claim → Unverifiable
+- Stamped PNGs are checked without re-encoding (keeps hidden id + exact fingerprint)
+- Upload limit raised to 9mb via `experimental.serverActions.bodySizeLimit`
+- Smoke: `npm run smoke:stamp`
+
+### C. Next: Phase 4 Editor + Publisher
+
+Editor resize line + Publisher post line pointing at parent; Check already walks parents.
 
 ## Phase 2 Create — what was built
 
-- Route: `/create` (sign-in + Maker company required)
-- Prepared PNG stamped with hidden id (`tEXt ModelLedger.Id`)
+- `/create` accepts PNG / JPEG / WebP (converts to stamped PNG so the hidden id can live in the file)
+- `/check` accepts the same; stamped PNGs are checked without re-encoding
 - Exact fingerprint = keccak of file bytes; look-alike = keccak of 32×32 pixel sample
 - Private sentence sealed into `prompt_envelopes.sealed_blob` (no plaintext column)
 - Public hash in `picture_lines.sealed_prompt_hash`

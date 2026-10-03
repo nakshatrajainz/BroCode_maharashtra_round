@@ -294,20 +294,31 @@ function CompanyCard({ company }: { company: Company }) {
 
 function CreatedNotice({ created }: { created: NonNullable<RegisterState["created"]> }) {
   return (
-    <div className="rounded-2xl border border-leaf/20 bg-leaf-soft px-5 py-4 text-sm leading-6">
-      <p className="font-medium text-leaf">
-        {created.name} is registered as {article(categoryTitle(created.category))}{" "}
+    <div className="result-in rounded-2xl border border-leaf/30 bg-leaf-soft px-5 py-5 text-sm leading-6">
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="rounded-xl bg-leaf px-3 py-1.5 text-sm font-semibold text-paper">Done</span>
+        <p className="text-sm text-ink/70">Registration complete</p>
+      </div>
+      <p className="mt-3 font-serif text-2xl text-ink">
+        {created.name} is now {article(categoryTitle(created.category))}{" "}
         {categoryTitle(created.category)}.
       </p>
-      <p className="mt-1 break-all text-ink/80">
-        Public stamp <span className="font-mono text-xs">{created.stampAddress}</span>. The private half is sealed on
-        our server and never reaches your browser.
+      <p className="mt-2 text-ink/80">
+        {created.chainTx
+          ? "On the allowed list and written to the public notebook."
+          : "Saved on this account. Notebook write will happen once the ledger is connected for this company."}
       </p>
-      {created.chainTx ? (
-        <p className="mt-1 break-all text-ink/80">
-          Notebook tx <span className="font-mono text-xs">{created.chainTx}</span>.
+      <details className="mt-4 rounded-xl border border-ink/10 bg-paper/50 px-4 py-3 text-ink/80">
+        <summary className="cursor-pointer font-medium text-ink">Technical details</summary>
+        <p className="mt-2 break-all text-xs text-muted">
+          Public stamp <span className="font-mono">{created.stampAddress}</span>
         </p>
-      ) : null}
+        {created.chainTx ? (
+          <p className="mt-1 break-all text-xs text-muted">
+            Notebook tx <span className="font-mono">{created.chainTx}</span>
+          </p>
+        ) : null}
+      </details>
     </div>
   );
 }

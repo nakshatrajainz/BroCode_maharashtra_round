@@ -55,9 +55,9 @@ Done offline when that picture can be downloaded and the line exists in Supabase
 
 ### Phase 3. The check page
 
-Anyone can upload a picture and receive one answer, one reason, and the list of lines.
+Anyone can upload a PNG on `/check` and receive one answer, one reason, and the list of lines. An optional “claimed maker” field covers the Self-asserted demo case.
 
-Done when the honest picture says Trusted and a phone photo with a fake claim says Self-asserted.
+Done when the honest stamped picture says Trusted and a phone photo with a fake claim says Self-asserted.
 
 ### Phase 4. Later steps
 
@@ -101,7 +101,7 @@ The site is on a public Vercel link. The notebook is on the BNB practice network
 
 ## Order of work
 
-Phase 0 shell is done. Phase 1 accounts and stamps are done. On-chain registration code is ready and **blocked only on free tBNB** for the keeper (see [HANDOFF.md](HANDOFF.md) — no real money). Phase 2 Create works offline (stamp + download); on-chain `writeLine` activates after deploy. Next: Phase 3 Check.
+Phase 0 shell is done. Phase 1 accounts and stamps are done; Ledger is deployed on BNB testnet. Phase 2 Create accepts PNG upload. Phase 3 Check returns verdicts. Next: Phase 4 Editor + Publisher lines.
 
 ## Testnet gas is free
 

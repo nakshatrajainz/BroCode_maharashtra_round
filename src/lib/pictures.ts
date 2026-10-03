@@ -1,5 +1,6 @@
 import "server-only";
 
+import sharp from "sharp";
 import { PNG } from "pngjs";
 import { keccak256, type Hex } from "viem";
 
@@ -25,6 +26,19 @@ export function buildPreparedPng() {
   }
 
   return PNG.sync.write(png);
+}
+
+/** Accept PNG / JPEG / WebP and normalize to PNG bytes we can stamp. */
+export async function normalizeToPng(bytes: Buffer) {
+  try {
+    const pngBytes = Buffer.from(
+      await sharp(bytes).rotate().ensureAlpha().png({ compressionLevel: 9 }).toBuffer(),
+    );
+    assertPng(pngBytes);
+    return pngBytes;
+  } catch {
+    throw new Error("Upload a PNG, JPEG, or WebP picture.");
+  }
 }
 
 export function embedHiddenId(pngBytes: Buffer, hiddenId: Hex) {
@@ -93,7 +107,7 @@ export function bufferToDataUrl(pngBytes: Buffer) {
 
 export function assertPng(bytes: Buffer) {
   if (bytes.length < 8 || !bytes.subarray(0, 8).equals(PNG_SIGNATURE)) {
-    throw new Error("Only PNG pictures are supported in this phase.");
+    throw new Error("Expected PNG bytes.");
   }
 }
 

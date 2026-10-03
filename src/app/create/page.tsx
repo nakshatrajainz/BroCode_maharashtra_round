@@ -27,10 +27,10 @@ export default async function CreatePage() {
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16">
       <p className="eyebrow">Create · company workspace</p>
-      <h1 className="mt-3 font-serif text-4xl tracking-tight">Add a line to a picture.</h1>
+      <h1 className="mt-3 font-serif text-4xl tracking-tight">Stamp before you send.</h1>
       <p className="mt-4 text-lg leading-8 text-muted">
-        A Maker stamps a prepared picture. The private sentence is sealed. The public line keeps
-        fingerprints, a hidden id, and the envelope hash.
+        Upload the picture your company made. Download the stamped copy. That is the file your user
+        should receive.
       </p>
 
       <CreateForm email={user?.email ?? null} makers={makers} ledgerReady={ledgerConfigured()} />

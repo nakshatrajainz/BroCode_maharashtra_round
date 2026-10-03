@@ -7,7 +7,9 @@ import {
   bufferToDataUrl,
   buildPreparedPng,
   embedHiddenId,
+  extractHiddenId,
   fingerprintsForPng,
+  normalizeToPng,
   toDownloadName,
 } from "@/lib/pictures";
 import { ledgerConfigured, writeLineOnChain } from "@/lib/ledger";
@@ -87,8 +89,31 @@ export async function submitMakerCreate(
 
   const hiddenId = randomBytes32();
   const lineId = randomBytes32();
-  const prepared = buildPreparedPng();
-  const stamped = embedHiddenId(prepared, hiddenId);
+
+  let sourcePng: Buffer;
+  const usePrepared = String(formData.get("usePrepared") ?? "") === "on";
+  const uploaded = formData.get("picture");
+
+  if (usePrepared) {
+    sourcePng = buildPreparedPng();
+  } else if (uploaded instanceof File && uploaded.size > 0) {
+    if (uploaded.size > 8 * 1024 * 1024) {
+      return { error: "Keep the picture under 8 MB." };
+    }
+    try {
+      const bytes = Buffer.from(await uploaded.arrayBuffer());
+      sourcePng = await normalizeToPng(bytes);
+    } catch {
+      return { error: "Upload a PNG, JPEG, or WebP picture." };
+    }
+  } else {
+    return { error: "Upload a picture, or tick “Use prepared sample”." };
+  }
+
+  const stamped = embedHiddenId(sourcePng, hiddenId);
+  if (extractHiddenId(stamped) !== hiddenId) {
+    return { error: "The stamp could not be written into the picture. Try another file." };
+  }
   const { exactFingerprint, lookalikeFingerprint } = fingerprintsForPng(stamped);
   const { sealedBlob, sealedPromptHash } = sealPrompt(sentence);
 
