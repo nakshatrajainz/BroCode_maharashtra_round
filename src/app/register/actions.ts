@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createAccount } from "@/lib/accounts";
+import { generateApiKey } from "@/lib/api-keys";
 import { categoryTitle, isCategory, type CategoryId } from "@/lib/categories";
 import { ledgerConfigured, registerCompanyOnChain } from "@/lib/ledger";
 import { createStamp } from "@/lib/stamps";
@@ -16,7 +17,13 @@ export type RegisterState = {
     stampAddress: string;
     chainTx?: string;
     models: string[];
+    apiKey: string;
   };
+};
+
+export type ApiKeyState = {
+  error?: string;
+  created?: { companyId: string; companyName: string; apiKey: string; keyPrefix: string };
 };
 
 export async function submitRegistration(
@@ -145,8 +152,77 @@ export async function submitRegistration(
     }
   }
 
+  const generated = generateApiKey();
+  const { error: apiKeyError } = await admin.from("company_api_keys").insert({
+    company_id: company.id,
+    key_prefix: generated.keyPrefix,
+    key_hash: generated.keyHash,
+  });
+  if (apiKeyError) {
+    await admin.from("stamp_keys").delete().eq("company_id", company.id);
+    await admin.from("companies").delete().eq("id", company.id);
+    return { error: "The company API key could not be saved. Try again." };
+  }
+
   revalidatePath("/register");
   revalidatePath("/create");
 
-  return { created: { name, category, stampAddress: stamp.address, chainTx, models: modelNames } };
+  return {
+    created: {
+      name,
+      category,
+      stampAddress: stamp.address,
+      chainTx,
+      models: modelNames,
+      apiKey: generated.apiKey,
+    },
+  };
+}
+
+/** Rotate / create a live API key for one company (shown once). */
+export async function createCompanyApiKey(
+  _previous: ApiKeyState,
+  formData: FormData,
+): Promise<ApiKeyState> {
+  const companyId = String(formData.get("companyId") ?? "");
+  if (!companyId) return { error: "Choose a company." };
+
+  const supabase = await createClient();
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return { error: "Sign in to create an API key." };
+
+  const admin = createAdminClient();
+  const { data: company } = await admin
+    .from("companies")
+    .select("id, name")
+    .eq("id", companyId)
+    .eq("owner_id", auth.user.id)
+    .maybeSingle();
+
+  if (!company) return { error: "That company was not found on this account." };
+
+  await admin
+    .from("company_api_keys")
+    .update({ revoked_at: new Date().toISOString() })
+    .eq("company_id", company.id)
+    .is("revoked_at", null);
+
+  const generated = generateApiKey();
+  const { error } = await admin.from("company_api_keys").insert({
+    company_id: company.id,
+    key_prefix: generated.keyPrefix,
+    key_hash: generated.keyHash,
+  });
+
+  if (error) return { error: "Could not create an API key. Try again." };
+
+  revalidatePath("/register");
+  return {
+    created: {
+      companyId: company.id,
+      companyName: company.name,
+      apiKey: generated.apiKey,
+      keyPrefix: generated.keyPrefix,
+    },
+  };
 }

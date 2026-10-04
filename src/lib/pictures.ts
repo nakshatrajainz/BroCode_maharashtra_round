@@ -122,9 +122,18 @@ export function fingerprintsForPng(pngBytes: Buffer): {
   };
 }
 
-export function toDownloadName(companyName: string) {
-  const safe = companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "picture";
-  return `${safe}-stamped.png`;
+/** Clear, unique download name: aura-created-a1b2c3d4.png */
+export function toDownloadName(input: {
+  companyName: string;
+  action: "maker" | "editor" | "publisher";
+  lineId: string;
+}) {
+  const company =
+    input.companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "company";
+  const step =
+    input.action === "maker" ? "created" : input.action === "editor" ? "changed" : "posted";
+  const unique = input.lineId.replace(/^0x/i, "").slice(0, 8).toLowerCase() || "stamp";
+  return `${company}-${step}-${unique}.png`;
 }
 
 export function bufferToDataUrl(pngBytes: Buffer) {

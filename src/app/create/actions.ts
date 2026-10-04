@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import type { CategoryId } from "@/lib/categories";
-import { generateApiKey } from "@/lib/api-keys";
 import { ledgerConfigured, setCompanyAllowedOnChain } from "@/lib/ledger";
 import { openPrompt } from "@/lib/prompts";
 import { stampPicture } from "@/lib/stamp-core";
@@ -35,11 +34,6 @@ export type CreateState = {
 export type AddModelState = {
   error?: string;
   added?: { companyName: string; modelName: string };
-};
-
-export type ApiKeyState = {
-  error?: string;
-  created?: { companyName: string; apiKey: string; keyPrefix: string };
 };
 
 function fail(error: string, errorNext: string): CreateState {
@@ -158,54 +152,6 @@ export async function addApprovedModel(
   revalidatePath("/create");
   revalidatePath("/register");
   return { added: { companyName: company.name, modelName } };
-}
-
-export async function createCompanyApiKey(
-  _previous: ApiKeyState,
-  formData: FormData,
-): Promise<ApiKeyState> {
-  const companyId = String(formData.get("companyId") ?? "");
-  if (!companyId) return { error: "Choose a company." };
-
-  const supabase = await createClient();
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) return { error: "Sign in to create an API key." };
-
-  const admin = createAdminClient();
-  const { data: company } = await admin
-    .from("companies")
-    .select("id, name")
-    .eq("id", companyId)
-    .eq("owner_id", auth.user.id)
-    .maybeSingle();
-
-  if (!company) return { error: "That company was not found on this account." };
-
-  // Revoke older active keys so the demo stays simple: one live key per company.
-  await admin
-    .from("company_api_keys")
-    .update({ revoked_at: new Date().toISOString() })
-    .eq("company_id", company.id)
-    .is("revoked_at", null);
-
-  const generated = generateApiKey();
-  const { error } = await admin.from("company_api_keys").insert({
-    company_id: company.id,
-    key_prefix: generated.keyPrefix,
-    key_hash: generated.keyHash,
-  });
-
-  if (error) return { error: "Could not create an API key. Try again." };
-
-  revalidatePath("/create");
-  revalidatePath("/developers");
-  return {
-    created: {
-      companyName: company.name,
-      apiKey: generated.apiKey,
-      keyPrefix: generated.keyPrefix,
-    },
-  };
 }
 
 export async function revealSealedSentence(

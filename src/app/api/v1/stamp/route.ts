@@ -28,9 +28,18 @@ export async function POST(request: Request) {
   }
 
   const model = String(form.get("model") ?? "").trim();
-  const sentence = String(form.get("sentence") ?? "").trim() || "Stamped via ModelLedger API.";
   const usePrepared = String(form.get("usePrepared") ?? "") === "true";
   const uploaded = form.get("picture");
+
+  const defaultSentence =
+    company.category === "maker"
+      ? model
+        ? `Created by ${company.name} with ${model}.`
+        : `Created by ${company.name}.`
+      : company.category === "editor"
+        ? `Changed by ${company.name}.`
+        : `Posted by ${company.name}.`;
+  const sentence = String(form.get("sentence") ?? "").trim() || defaultSentence;
 
   let pictureBytes: Buffer | null = null;
   if (!usePrepared && uploaded instanceof File && uploaded.size > 0) {

@@ -8,7 +8,6 @@ const links = [
   { href: "/check", label: "Check" },
   { href: "/create", label: "Stamp" },
   { href: "/register", label: "Companies" },
-  { href: "/developers", label: "API" },
 ];
 
 export function SiteHeader({ email }: { email: string | null }) {

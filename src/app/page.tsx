@@ -21,11 +21,8 @@ export default function Home() {
           <Link href="/check" className="button">
             Check a picture
           </Link>
-          <Link href="/developers" className="button-quiet">
-            Company API
-          </Link>
           <Link href="/create" className="button-quiet">
-            Stamp demo
+            Stamp a picture
           </Link>
         </div>
 
@@ -64,8 +61,8 @@ export default function Home() {
             <p className="eyebrow">For companies</p>
             <h2 className="mt-3 font-serif text-3xl tracking-tight">Workspace</h2>
             <p className="mt-3 max-w-md text-sm leading-6 text-muted">
-              Sign in → Companies (approve models) → Stamp. Demo of the company API that would sit in
-              a real create/edit/publish pipeline.
+              Sign in → register a company (you get an API key) → stamp on the website for the demo.
+              In real life their app uses that key, not our forms.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link href="/sign-in" className="button inline-flex">

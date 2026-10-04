@@ -3,16 +3,24 @@
 import Link from "next/link";
 import { startTransition, useActionState, useState, type FormEvent, type ReactNode } from "react";
 import { categories, categoryTitle, type CategoryId } from "@/lib/categories";
-import { submitRegistration, type RegisterState } from "./actions";
+import {
+  createCompanyApiKey,
+  submitRegistration,
+  type ApiKeyState,
+  type RegisterState,
+} from "./actions";
 
 export type Company = {
   id: string;
   name: string;
   category: CategoryId;
   stampAddress: string;
+  onChain: boolean;
+  apiKeyPrefix: string | null;
 };
 
 const initialState: RegisterState = {};
+const initialApiKey: ApiKeyState = {};
 
 const tagStyles: Record<CategoryId, string> = {
   maker: "bg-seal-soft text-seal",
@@ -58,7 +66,7 @@ export function RegisterFlow({ email, companies }: { email: string | null; compa
           <div>
             <p className="font-medium">Does your business do another job?</p>
             <p className="mt-1 text-sm leading-6 text-muted">
-              Register it as a separate company with its own name and stamp. Still open:{" "}
+              Register a separate company (own name, own stamp, own API key). Still open:{" "}
               {remaining.map((category) => category.title).join(", ")}.
             </p>
           </div>
@@ -122,8 +130,9 @@ function RegisterForm({
         <div className="rounded-xl bg-paper px-4 py-3 text-sm leading-6">
           <p className="font-medium">You are adding a new, separate company.</p>
           <p className="text-muted">
-            It will not change {companies.map((company) => `${company.name} (${categoryTitle(company.category)})`).join(", ")}.
-            It gets its own name, its own job, and its own stamp.
+            It will not change{" "}
+            {companies.map((company) => `${company.name} (${categoryTitle(company.category)})`).join(", ")}.
+            It gets its own name, job, stamp, and API key.
           </p>
         </div>
       ) : null}
@@ -169,7 +178,7 @@ function RegisterForm({
             );
           })}
         </div>
-        <p className="text-sm text-muted">One company does exactly one job.</p>
+        <p className="text-sm text-muted">One company = one job = one stamp = one API key.</p>
       </Step>
 
       <Step number={2} title="Company name">
@@ -200,8 +209,8 @@ function RegisterForm({
         />
         <p className="text-sm text-muted">
           {category === "maker"
-            ? "Makers must pre-approve which models can stamp. One name per line (or comma-separated). In production this comes from the company API."
-            : "Optional for Editor / Publisher. You can also add models later on Stamp."}
+            ? "Which models this Maker may stamp. One name per line."
+            : "Optional for Editor / Publisher."}
         </p>
       </Step>
 
@@ -250,7 +259,8 @@ function RegisterForm({
             <>
               You are registering <strong>{name.trim()}</strong> as {article(chosen.title)}{" "}
               <strong>{chosen.title}</strong>
-              {signedIn ? "." : ", and making your account."}
+              {signedIn ? "." : ", and making your account."} You will get an API key for this
+              company.
             </>
           ) : (
             <span className="text-muted">Choose a job and a name to continue.</span>
@@ -289,25 +299,70 @@ function Step({ number, title, children }: { number: number; title: string; chil
 }
 
 function CompanyCard({ company }: { company: Company }) {
+  const [state, formAction, pending] = useActionState(createCompanyApiKey, initialApiKey);
+  const showKey = state.created?.companyId === company.id ? state.created : null;
+
   return (
-    <li className="card flex items-start gap-4 p-5">
-      <span
-        className={`grid size-11 shrink-0 place-items-center rounded-xl font-serif text-xl ${tagStyles[company.category]}`}
-      >
-        {company.name.charAt(0).toUpperCase()}
-      </span>
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="font-medium">{company.name}</p>
-          <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${tagStyles[company.category]}`}>
-            {categoryTitle(company.category)}
-          </span>
+    <li className="card grid gap-4 p-5">
+      <div className="flex items-start gap-4">
+        <span
+          className={`grid size-11 shrink-0 place-items-center rounded-xl font-serif text-xl ${tagStyles[company.category]}`}
+        >
+          {company.name.charAt(0).toUpperCase()}
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="font-medium">{company.name}</p>
+            <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${tagStyles[company.category]}`}>
+              {categoryTitle(company.category)}
+            </span>
+          </div>
+          <p className="mt-2 text-sm leading-6 text-muted">
+            This company stamps as a {categoryTitle(company.category)}. Its API key only does that
+            job.
+          </p>
+          <p className="mt-2 text-xs text-muted">
+            {company.onChain ? "On the public notebook" : "Saved here · notebook pending"}
+            {company.apiKeyPrefix ? (
+              <>
+                {" · "}
+                API key <span className="font-mono">{company.apiKeyPrefix}…</span>
+              </>
+            ) : (
+              " · no live API key yet"
+            )}
+          </p>
         </div>
-        <p className="mt-2 truncate font-mono text-xs text-muted" title={company.stampAddress}>
-          Stamp {company.stampAddress}
-        </p>
-        <p className="mt-1 text-xs text-muted">Public notebook: not written yet</p>
       </div>
+
+      <form action={formAction} className="flex flex-wrap items-center gap-3 border-t border-line pt-4">
+        <input type="hidden" name="companyId" value={company.id} />
+        <button type="submit" className="button-quiet" disabled={pending}>
+          {pending
+            ? "Creating…"
+            : company.apiKeyPrefix
+              ? "Make a new API key"
+              : "Create API key"}
+        </button>
+        <Link href="/create" className="text-sm text-muted underline-offset-2 hover:underline">
+          Stamp with this company →
+        </Link>
+      </form>
+
+      {state.error && !showKey ? (
+        <p className="rounded-xl bg-danger-soft px-4 py-3 text-sm text-danger">{state.error}</p>
+      ) : null}
+
+      {showKey ? (
+        <div className="rounded-xl border border-leaf/30 bg-leaf-soft px-4 py-4 text-sm leading-6">
+          <p className="font-semibold text-leaf">Copy this key now — shown once.</p>
+          <p className="mt-2 break-all font-mono text-xs text-ink">{showKey.apiKey}</p>
+          <p className="mt-2 text-ink/80">
+            Put this in {company.name}&apos;s server. For a click demo, use Stamp on the website
+            instead.
+          </p>
+        </div>
+      ) : null}
     </li>
   );
 }
@@ -317,7 +372,7 @@ function CreatedNotice({ created }: { created: NonNullable<RegisterState["create
     <div className="result-in rounded-2xl border border-leaf/30 bg-leaf-soft px-5 py-5 text-sm leading-6">
       <div className="flex flex-wrap items-center gap-3">
         <span className="rounded-xl bg-leaf px-3 py-1.5 text-sm font-semibold text-paper">Done</span>
-        <p className="text-sm text-ink/70">Registration complete</p>
+        <p className="text-sm text-ink/70">Company ready</p>
       </div>
       <p className="mt-3 font-serif text-2xl text-ink">
         {created.name} is now {article(categoryTitle(created.category))}{" "}
@@ -326,24 +381,23 @@ function CreatedNotice({ created }: { created: NonNullable<RegisterState["create
       <p className="mt-2 text-ink/80">
         {created.chainTx
           ? "On the allowed list and written to the public notebook."
-          : "Saved on this account. Notebook write will happen once the ledger is connected for this company."}
+          : "Saved on this account. Notebook write needs the ledger for this company."}
       </p>
       {created.models.length > 0 ? (
-        <p className="mt-2 text-ink/80">
-          Approved models: {created.models.join(", ")}.
-        </p>
+        <p className="mt-2 text-ink/80">Approved models: {created.models.join(", ")}.</p>
       ) : null}
-      <details className="mt-4 rounded-xl border border-ink/10 bg-paper/50 px-4 py-3 text-ink/80">
-        <summary className="cursor-pointer font-medium text-ink">Technical details</summary>
-        <p className="mt-2 break-all text-xs text-muted">
-          Public stamp <span className="font-mono">{created.stampAddress}</span>
+      <div className="mt-4 rounded-xl border border-ink/10 bg-paper/70 px-4 py-4">
+        <p className="font-semibold text-ink">API key for this company (copy once)</p>
+        <p className="mt-2 break-all font-mono text-xs text-ink">{created.apiKey}</p>
+        <p className="mt-2 text-ink/80">
+          Their app uses this key to stamp. You can also stamp from the website for the demo.
         </p>
-        {created.chainTx ? (
-          <p className="mt-1 break-all text-xs text-muted">
-            Notebook tx <span className="font-mono">{created.chainTx}</span>
-          </p>
-        ) : null}
-      </details>
+      </div>
+      <div className="mt-4 flex flex-wrap gap-3">
+        <Link href="/create" className="button">
+          Stamp a picture
+        </Link>
+      </div>
     </div>
   );
 }

@@ -24,6 +24,12 @@
 .DS_Store
 *.pem
 
+# local demo image packs (keep folder READMEs)
+demo-photos/**/*.png
+demo-photos/**/*.jpg
+demo-photos/**/*.jpeg
+demo-photos/**/*.webp
+
 # debug
 npm-debug.log*
 yarn-debug.log*

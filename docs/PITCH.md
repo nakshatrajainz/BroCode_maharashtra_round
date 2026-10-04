@@ -59,7 +59,7 @@ ModelLedger is a stamp notebook. Allowed companies stamp a picture when they cre
 4. If time: Edit → Publish with that same download.  
 5. **Check** — upload download → Trusted, show company + model + time.  
 6. Punch line: try Create again on the same file → blocked. You can’t fake a new origin.  
-7. **API** page — show curl: real companies call `/api/v1/stamp`, people/apps call `/api/v1/check`.
+7. Say (don’t drown in docs): when they registered, they got an API key. In real life their app stamps with that key; today we clicked the website instead.
 
 **Close**  
 The website is how we demo. The product is the company API inside their create/edit/publish pipeline. Consumers only ever check.
@@ -87,4 +87,4 @@ Anyone can delete or copy that text. The public notebook + company stamp is the 
 - [ ] Maker with model + API key ready
 - [ ] One fresh image ready
 - [ ] Create → Check Trusted works once
-- [ ] Developers page open in a tab for the API slide/moment
+- [ ] Know one line: “API key comes with the company; website Stamp is the click demo”

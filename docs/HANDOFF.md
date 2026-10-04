@@ -51,7 +51,7 @@ No admin portal. Keeper wallet = admin.
 | Phase | Status | Notes |
 |---|---|---|
 | 0–3 | **Done** | Shell, auth, Maker stamp, Check verdicts |
-| 1 On-chain | **Deployed** | Ledger `0x500c480786a6e07347860d9ba784cb3cda545236` |
+| 1 On-chain | **Redeployed (clean)** | Ledger `0x6af9a87f5ece8120b4a03097d3ef2899157a6e37` |
 | 4 Editor + Publisher | **Done** (fix parent PNG preserve) | Parent links + Check path |
 | 5 Hard cases | **Core done** | Reveal, revoke, dual-maker, post-revoke |
 | 6 Public demo | In progress | UI polish + AI models; Vercel next |
@@ -106,11 +106,18 @@ Editor/Publisher upload of stamped PNG was passed through `normalizeToPng` (Shar
 - Docs page: `/developers`
 - Shared stamp logic: `src/lib/stamp-core.ts`
 
+## Clean reset (done before demo)
+
+- Supabase wiped: users, companies, stamps, lines, models, API keys = **0**
+- New empty Ledger: `0x6af9a87f5ece8120b4a03097d3ef2899157a6e37` (in `.env`)
+- Local demo folders: `demo-photos/01-unstamped` … `04-stamped-publish`
+- Old chain data on previous contract still exists on testnet but the app ignores it
+
 ## Next
 
-1. Deploy Vercel (framework: **Next.js**). Set all `.env` keys in Project Settings → Environment Variables (Production).
-2. Rehearse Create (with model) → Edit → Publish → Check Trusted.
-3. Prefer new companies registered **after** ledger deploy so `chain_tx` is set.
+1. Register fresh Maker (+ Editor/Publisher) on the new ledger.
+2. Rehearse Create → Edit → Publish → Check using `demo-photos/`.
+3. Deploy Vercel (framework: **Next.js**) with the **new** `LEDGER_CONTRACT_ADDRESS`.
 4. Practice [docs/PITCH.md](PITCH.md) once out loud.
 
 ## Attribution / git

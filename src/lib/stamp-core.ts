@@ -317,7 +317,11 @@ export async function stampPicture(input: {
       sealedPromptHash,
       chainTx,
       onChain,
-      downloadName: toDownloadName(input.company.name),
+      downloadName: toDownloadName({
+        companyName: input.company.name,
+        action,
+        lineId,
+      }),
       downloadUrl: bufferToDataUrl(stamped),
       pngBytes: stamped,
     },
