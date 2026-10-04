@@ -9,6 +9,8 @@ export type CheckLine = {
   parentLineId: string | null;
   onChain: boolean;
   match: "exact" | "lookalike" | "hidden-id";
+  aiModel: string | null;
+  stampedAt: string;
 };
 
 export type CheckResult = {

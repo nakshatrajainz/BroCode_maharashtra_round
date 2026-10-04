@@ -1,6 +1,6 @@
 "use server";
 
-import { assertPng, normalizeToPng } from "@/lib/pictures";
+import { readUploadAsPng } from "@/lib/pictures";
 import { checkPicture, type CheckResult } from "@/lib/verdict";
 
 export type CheckState = {
@@ -21,14 +21,8 @@ export async function submitCheck(_previous: CheckState, formData: FormData): Pr
 
   let pngBytes: Buffer;
   try {
-    const bytes = Buffer.from(await uploaded.arrayBuffer());
-    try {
-      // Keep stamped PNGs byte-for-byte so hidden id + exact fingerprint survive.
-      assertPng(bytes);
-      pngBytes = bytes;
-    } catch {
-      pngBytes = await normalizeToPng(bytes);
-    }
+    // Keep stamped PNGs byte-for-byte so hidden id + exact fingerprint survive.
+    pngBytes = await readUploadAsPng(Buffer.from(await uploaded.arrayBuffer()));
   } catch {
     return { error: "Upload a PNG, JPEG, or WebP picture." };
   }

@@ -11,6 +11,8 @@ type CompanyInfo = {
   name: string;
   category: string;
   stamp_address: string;
+  allowed: boolean | null;
+  revoked_at: string | null;
 };
 
 type LineRow = {
@@ -21,13 +23,15 @@ type LineRow = {
   lookalike_fingerprint: string;
   hidden_id: string;
   chain_tx: string | null;
+  created_at: string;
+  ai_model: string | null;
   companies: CompanyInfo | CompanyInfo[] | null;
 };
 
 type NormalizedLine = Omit<LineRow, "companies"> & { company: CompanyInfo };
 
 const LINE_SELECT =
-  "line_id, parent_line_id, action, exact_fingerprint, lookalike_fingerprint, hidden_id, chain_tx, companies(name, category, stamp_address)";
+  "line_id, parent_line_id, action, exact_fingerprint, lookalike_fingerprint, hidden_id, chain_tx, created_at, ai_model, companies(name, category, stamp_address, allowed, revoked_at)";
 
 export async function checkPicture(input: {
   pngBytes: Buffer;
@@ -64,7 +68,7 @@ export async function checkPicture(input: {
   if (found === "ambiguous") {
     return baseResult(
       "Unverifiable",
-      "More than one notebook line matches this file’s look-alike fingerprint, so the story is unclear.",
+      "More than one notebook line matches this file, so the story is unclear (for example two Makers claiming the same picture).",
       { hiddenId, exactFingerprint, lookalikeFingerprint, lines: [] },
     );
   }
@@ -83,6 +87,19 @@ export async function checkPicture(input: {
         exactFingerprint,
         lookalikeFingerprint,
         lines: [toCheckLine(row, hiddenMatch ? "hidden-id" : "exact")],
+      },
+    );
+  }
+
+  if (isLineAfterRevoke(row)) {
+    return baseResult(
+      "Unverifiable",
+      `${row.company.name} was revoked before or when this line was written. Old trusted lines remain; this later stamp does not count as Trusted.`,
+      {
+        hiddenId,
+        exactFingerprint,
+        lookalikeFingerprint,
+        lines: [toCheckLine(row, exactMatch ? "exact" : "lookalike")],
       },
     );
   }
@@ -132,22 +149,55 @@ export async function checkPicture(input: {
     });
   }
 
-  const match: CheckLine["match"] = exactMatch ? "exact" : "lookalike";
-  // Oldest → newest for the story path.
-  const lines = [...chain.lines].reverse().concat(toCheckLine(row, match));
+  // Dual Maker claim on the same pixels: another Maker line with same exact fingerprint.
+  if (row.action === "maker") {
+    const { count } = await admin
+      .from("picture_lines")
+      .select("line_id", { count: "exact", head: true })
+      .eq("action", "maker")
+      .eq("exact_fingerprint", exactFingerprint);
+    if ((count ?? 0) > 1) {
+      return baseResult(
+        "Unverifiable",
+        "Two allowed Makers both claim they created this same picture.",
+        { hiddenId, exactFingerprint, lookalikeFingerprint, lines: [] },
+      );
+    }
+  }
 
-  return baseResult(
-    "Trusted",
-    exactMatch
-      ? `${row.company.name} stamped this picture, and the file still matches the notebook exactly.`
-      : `${row.company.name} stamped this picture. The exact bytes changed, but the look-alike fingerprint and story still match.`,
-    {
-      hiddenId: (hiddenId ?? row.hidden_id) as Hex,
-      exactFingerprint,
-      lookalikeFingerprint,
-      lines,
-    },
-  );
+  const match: CheckLine["match"] = exactMatch ? "exact" : "lookalike";
+  const lines = [...chain.lines].reverse().concat(toCheckLine(row, match));
+  const story = lines
+    .map((line) => {
+      const verb = line.action === "maker" ? "Created" : line.action === "editor" ? "Changed" : "Posted";
+      const model = line.aiModel ? ` · ${line.aiModel}` : "";
+      return `${verb} by ${line.companyName}${model}`;
+    })
+    .join(" → ");
+
+  const makerModel = lines.find((line) => line.action === "maker")?.aiModel;
+  const modelNote = makerModel ? ` Model: ${makerModel}.` : "";
+
+  const reason =
+    lines.length > 1
+      ? exactMatch
+        ? `Full story on the notebook: ${story}. The file matches the latest stamp exactly.${modelNote}`
+        : `Full story on the notebook: ${story}. Exact bytes changed, but the look-alike fingerprint still matches.${modelNote}`
+      : exactMatch
+        ? `${row.company.name} created this picture${makerModel ? ` with ${makerModel}` : ""}, and the file still matches the notebook exactly. No later Editor or Publisher step yet.`
+        : `${row.company.name} created this picture${makerModel ? ` with ${makerModel}` : ""}. Exact bytes changed, but the look-alike fingerprint still matches. No later Editor or Publisher step yet.`;
+
+  return baseResult("Trusted", reason, {
+    hiddenId: (hiddenId ?? row.hidden_id) as Hex,
+    exactFingerprint,
+    lookalikeFingerprint,
+    lines,
+  });
+}
+
+function isLineAfterRevoke(row: NormalizedLine) {
+  if (row.company.allowed !== false || !row.company.revoked_at) return false;
+  return new Date(row.created_at).getTime() >= new Date(row.company.revoked_at).getTime();
 }
 
 async function findLine(
@@ -161,13 +211,16 @@ async function findLine(
   }
 
   {
-    const { data } = await admin
+    const { data, error } = await admin
       .from("picture_lines")
       .select(LINE_SELECT)
       .eq("exact_fingerprint", keys.exactFingerprint)
-      .maybeSingle();
-    const normalized = normalizeRow(data);
-    if (normalized) return normalized;
+      .limit(2);
+    if (!error && data) {
+      if (data.length > 1) return "ambiguous";
+      const normalized = normalizeRow(data[0]);
+      if (normalized) return normalized;
+    }
   }
 
   const { data: lookalikes, error } = await admin
@@ -195,7 +248,15 @@ function normalizeRow(data: unknown): NormalizedLine | null {
     lookalike_fingerprint: row.lookalike_fingerprint,
     hidden_id: row.hidden_id,
     chain_tx: row.chain_tx,
-    company,
+    created_at: row.created_at,
+    ai_model: row.ai_model ?? null,
+    company: {
+      name: company.name,
+      category: company.category,
+      stamp_address: company.stamp_address,
+      allowed: company.allowed ?? true,
+      revoked_at: company.revoked_at ?? null,
+    },
   };
 }
 
@@ -209,6 +270,8 @@ function toCheckLine(row: NormalizedLine, match: CheckLine["match"]): CheckLine 
     parentLineId: row.parent_line_id,
     onChain: Boolean(row.chain_tx),
     match,
+    aiModel: row.ai_model,
+    stampedAt: row.created_at,
   };
 }
 
@@ -231,6 +294,13 @@ async function walkParents(
     if (!row) {
       return {
         error: "A line points at an earlier line that was never written.",
+        lines,
+      };
+    }
+
+    if (isLineAfterRevoke(row)) {
+      return {
+        error: `${row.company.name} was revoked when a parent line was written, so the chain is not Trusted.`,
         lines,
       };
     }

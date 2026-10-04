@@ -6,7 +6,8 @@ export default function CheckPage() {
       <p className="eyebrow">Check · public</p>
       <h1 className="mt-3 font-serif text-4xl tracking-tight">Is this picture’s story real?</h1>
       <p className="mt-4 text-lg leading-8 text-muted">
-        Upload a file. Get one clear answer — no account, no wallet, no hex required.
+        Upload a file. See the company, AI model, stamp time, and one clear answer — no account
+        needed.
       </p>
 
       <div className="mt-8 flex flex-wrap gap-2 text-sm">

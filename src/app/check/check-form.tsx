@@ -173,9 +173,18 @@ function StoryStep({ line, step }: { line: CheckLine; step: number }) {
       <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-ink text-xs text-paper">
         {step}
       </span>
-      <div>
+      <div className="min-w-0">
         <p className="font-medium">
           {actionLabel[line.action] ?? line.action} by {line.companyName}
+        </p>
+        <p className="mt-1 text-xs leading-5 text-muted">
+          {line.aiModel ? (
+            <>
+              Model <span className="font-medium text-ink/80">{line.aiModel}</span>
+              {" · "}
+            </>
+          ) : null}
+          Stamped {formatStampTime(line.stampedAt)}
         </p>
         <p className="mt-1 text-xs text-muted">
           {line.onChain ? "Written on the public notebook" : "Saved locally for now"}
@@ -188,4 +197,16 @@ function StoryStep({ line, step }: { line: CheckLine; step: number }) {
       </div>
     </li>
   );
+}
+
+function formatStampTime(iso: string) {
+  try {
+    return new Intl.DateTimeFormat("en-IN", {
+      dateStyle: "medium",
+      timeStyle: "short",
+      timeZone: "Asia/Kolkata",
+    }).format(new Date(iso));
+  } catch {
+    return iso;
+  }
 }

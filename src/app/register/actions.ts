@@ -15,6 +15,7 @@ export type RegisterState = {
     category: CategoryId;
     stampAddress: string;
     chainTx?: string;
+    models: string[];
   };
 };
 
@@ -70,6 +71,19 @@ export async function submitRegistration(
     };
   }
 
+  const modelNames = String(formData.get("models") ?? "")
+    .split(/[\n,]/)
+    .map((item) => item.trim().replace(/\s+/g, " "))
+    .filter((item) => item.length >= 1 && item.length <= 80)
+    .filter((item, index, all) => all.findIndex((other) => other.toLowerCase() === item.toLowerCase()) === index)
+    .slice(0, 12);
+
+  if (category === "maker" && modelNames.length === 0) {
+    return {
+      error: "Add at least one approved AI model name for this Maker (for example Flux 1.1 or Imagen 3).",
+    };
+  }
+
   const stamp = createStamp();
   const { data: company, error: companyError } = await admin
     .from("companies")
@@ -99,6 +113,20 @@ export async function submitRegistration(
     return { error: "The stamp could not be saved. Try again." };
   }
 
+  if (modelNames.length > 0) {
+    const { error: modelError } = await admin.from("company_models").insert(
+      modelNames.map((modelName) => ({
+        company_id: company.id,
+        name: modelName,
+      })),
+    );
+    if (modelError) {
+      await admin.from("stamp_keys").delete().eq("company_id", company.id);
+      await admin.from("companies").delete().eq("id", company.id);
+      return { error: "The approved models could not be saved. Try again." };
+    }
+  }
+
   let chainTx: string | undefined;
   if (ledgerConfigured()) {
     try {
@@ -118,6 +146,7 @@ export async function submitRegistration(
   }
 
   revalidatePath("/register");
+  revalidatePath("/create");
 
-  return { created: { name, category, stampAddress: stamp.address, chainTx } };
+  return { created: { name, category, stampAddress: stamp.address, chainTx, models: modelNames } };
 }

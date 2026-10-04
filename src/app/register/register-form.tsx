@@ -185,8 +185,28 @@ function RegisterForm({
         />
       </Step>
 
+      <Step number={3} title="Approved AI models">
+        <textarea
+          name="models"
+          className="field min-h-24 resize-y"
+          placeholder={
+            category === "maker"
+              ? "Flux 1.1\nImagen 3\nDALL·E 3"
+              : "Optional — e.g. Photoshop Firefly, Topaz Gigapixel"
+          }
+          required={category === "maker"}
+          defaultValue={category === "maker" ? "Flux 1.1" : ""}
+          key={category ?? "none"}
+        />
+        <p className="text-sm text-muted">
+          {category === "maker"
+            ? "Makers must pre-approve which models can stamp. One name per line (or comma-separated). In production this comes from the company API."
+            : "Optional for Editor / Publisher. You can also add models later on Stamp."}
+        </p>
+      </Step>
+
       {signedIn ? null : (
-        <Step number={3} title="Your account">
+        <Step number={4} title="Your account">
           <label className="grid gap-2">
             <span className="text-sm text-muted">Email</span>
             <input name="email" type="email" autoComplete="email" required className="field" />
@@ -308,6 +328,11 @@ function CreatedNotice({ created }: { created: NonNullable<RegisterState["create
           ? "On the allowed list and written to the public notebook."
           : "Saved on this account. Notebook write will happen once the ledger is connected for this company."}
       </p>
+      {created.models.length > 0 ? (
+        <p className="mt-2 text-ink/80">
+          Approved models: {created.models.join(", ")}.
+        </p>
+      ) : null}
       <details className="mt-4 rounded-xl border border-ink/10 bg-paper/50 px-4 py-3 text-ink/80">
         <summary className="cursor-pointer font-medium text-ink">Technical details</summary>
         <p className="mt-2 break-all text-xs text-muted">

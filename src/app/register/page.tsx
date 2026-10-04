@@ -24,14 +24,14 @@ export default async function RegisterPage() {
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16">
-      <p className="eyebrow">Register</p>
+      <p className="eyebrow">Companies · workspace</p>
       <h1 className="mt-3 font-serif text-4xl tracking-tight">
         {companies.length > 0 ? "Your companies." : "Put your company on the allowed list."}
       </h1>
       <p className="mt-4 text-lg leading-8 text-muted">
         {user
-          ? "Each company does one job and gets its own stamp. The private half of every stamp stays on our server."
-          : "Pick the one job your company does, name it, and make your account in the same step."}
+          ? "Each company does one job, gets its own stamp, and pre-approves AI models. Then Stamp writes company + model + time onto the notebook."
+          : "New here? Create an account, your first company, and approved models in one step. Returning? Sign in, then add companies here."}
       </p>
 
       <RegisterFlow email={user?.email ?? null} companies={companies} />

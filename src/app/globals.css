@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --paper: #f5f1e8;
+  --paper: #f3eee3;
   --card: #fffdf8;
-  --ink: #1c1915;
-  --muted: #6b6458;
-  --line: #e6dece;
-  --seal: #8c2f2a;
-  --seal-soft: #f6e7e2;
-  --leaf: #2f6b4f;
-  --leaf-soft: #e4f0e8;
+  --ink: #171410;
+  --muted: #5f574c;
+  --line: #e0d5c2;
+  --seal: #9a2f28;
+  --seal-soft: #f8e6e1;
+  --leaf: #236348;
+  --leaf-soft: #dff0e6;
   --warn: #9a6b16;
   --warn-soft: #f7efd8;
   --danger: #a11f1f;

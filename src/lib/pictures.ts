@@ -41,6 +41,32 @@ export async function normalizeToPng(bytes: Buffer) {
   }
 }
 
+/**
+ * Read an upload for stamp/check. Already-PNG bytes are kept as-is so
+ * tEXt ModelLedger.Id and exact fingerprints survive. JPEG/WebP convert.
+ */
+export async function readUploadAsPng(bytes: Buffer) {
+  try {
+    assertPng(bytes);
+    return bytes;
+  } catch {
+    return normalizeToPng(bytes);
+  }
+}
+
+/** Editor demo change: shrink to half width (min 32px). */
+export async function resizePngHalf(pngBytes: Buffer) {
+  assertPng(pngBytes);
+  const image = sharp(pngBytes);
+  const meta = await image.metadata();
+  const width = Math.max(32, Math.floor((meta.width ?? 64) / 2));
+  const out = Buffer.from(
+    await image.resize({ width }).ensureAlpha().png({ compressionLevel: 9 }).toBuffer(),
+  );
+  assertPng(out);
+  return out;
+}
+
 export function embedHiddenId(pngBytes: Buffer, hiddenId: Hex) {
   assertPng(pngBytes);
   const chunks = readChunks(pngBytes).filter((chunk) => !(chunk.name === "tEXt" && textKey(chunk.data) === HIDDEN_KEY));

@@ -63,6 +63,8 @@ Done when the honest stamped picture says Trusted and a phone photo with a fake 
 
 An Editor can add a resize line that points at the creation line. A Publisher can add a posting line. The check page shows the path in order.
 
+**Rule:** stamped PNG uploads must keep their bytes (no Sharp re-encode) so the hidden id survives. Only JPEG/WebP convert to PNG.
+
 Done when one picture shows created, then resized, then posted.
 
 ### Phase 5. The hard cases
@@ -101,7 +103,7 @@ The site is on a public Vercel link. The notebook is on the BNB practice network
 
 ## Order of work
 
-Phase 0 shell is done. Phase 1 accounts and stamps are done; Ledger is deployed on BNB testnet. Phase 2 Create accepts PNG upload. Phase 3 Check returns verdicts. Next: Phase 4 Editor + Publisher lines.
+Phase 0–5 core demo path is in: Maker/Editor/Publisher stamps, Check verdicts, reveal sentence, revoke. Stamped-PNG preserve bug on Create is fixed (see HANDOFF). Companies pre-approve AI models; stamps store model + time for Check. Next: Phase 6 public Vercel demo + rehearsal Create → Edit → Publish → Check.
 
 ## Testnet gas is free
 
