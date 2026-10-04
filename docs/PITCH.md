@@ -1,4 +1,9 @@
-# ModelLedger — simple 5-min pitch (say it like a first-year)
+# ModelLedger — 5-min pitch (PPT first, then live demo)
+
+**Deck:** [ModelLedger-Pitch.pptx](ModelLedger-Pitch.pptx)  
+**Screenshots:** [pitch-assets/](pitch-assets/)
+
+Order for judges: **PPT (≈2 min) → live demo (≈2.5 min) → close (≈30s) → Q&A**.
 
 No heavy jargon. If a word feels fancy, skip it.
 
@@ -34,17 +39,17 @@ If they ask “how do you know it wasn’t edited?”:
 If they ask “why blockchain?”:
 > So the notebook is public and hard to quietly rewrite. Judges can look outside our website.
 
-## 5 minutes
+## 5 minutes (with PPT)
 
-| Time | Say / show |
+| Time | What |
 |---|---|
-| 0:00–0:40 | Problem: anyone can claim an AI image |
-| 0:40–1:20 | We stamp the story: company + model + time. Check gives one clear answer |
-| 1:20–3:40 | **Live demo** (below) |
-| 3:40–4:40 | Real product is the **API**, website is the demo remote |
-| 4:40–5:00 | Close + thank you |
+| 0:00–0:40 | PPT: problem (anyone can claim an AI image) |
+| 0:40–1:20 | PPT: solution + 3 answers + Register → Stamp → Check flow |
+| 1:20–2:00 | PPT: company API flow + “website is the demo remote” + screenshots |
+| 2:00–4:30 | **Live demo** on Vercel / laptop |
+| 4:30–5:00 | Close: They generate. We stamp. Anyone checks. |
 
-### What to say (almost word-for-word)
+### What to say over the PPT
 
 **Problem**  
 AI pictures are everywhere. Anyone can download one and say “our company made this.” There is no simple public way to check.
@@ -52,17 +57,20 @@ AI pictures are everywhere. Anyone can download one and say “our company made 
 **What we built**  
 ModelLedger is a stamp notebook. Allowed companies stamp a picture when they create it, edit it, or post it. They also say which AI model they used. Later, anyone opens Check, uploads the file, and gets Trusted, Self-asserted, or Unverifiable.
 
-**Demo**  
+**API (say this clearly)**  
+In real life the company registers once, gets an API key, and their engineering team calls our Stamp API after an image is generated. We return the stamped file. They give that file to their client. The client (or anyone) uses Check. We don’t run their models — we are the trust layer.
+
+### Live demo clicks
+
 1. Open **Check** — show the three colored answers.  
-2. Sign in → **Companies** — Maker with an approved model (Flux 1.1).  
-3. **Stamp → Create** — pick company + model → stamp → download.  
-4. If time: Edit → Publish with that same download.  
-5. **Check** — upload download → Trusted, show company + model + time.  
-6. Punch line: try Create again on the same file → blocked. You can’t fake a new origin.  
-7. Say (don’t drown in docs): when they registered, they got an API key. In real life their app stamps with that key; today we clicked the website instead.
+2. **Companies** — Maker + model (API key shown once).  
+3. **Stamp → Create** — company + model → download.  
+4. **Check** — upload → Trusted (company, model, time).  
+5. Optional: try Create again on same file → blocked.  
+6. One line: website Stamp = click demo; production = same thing via API key.
 
 **Close**  
-The website is how we demo. The product is the company API inside their create/edit/publish pipeline. Consumers only ever check.
+They generate. We stamp. Anyone checks.
 
 ## Easy Q&A
 
@@ -81,10 +89,21 @@ No. Only the company can open their sealed note later.
 **Why not only put text inside the PNG?**  
 Anyone can delete or copy that text. The public notebook + company stamp is the real proof.
 
+**What do you provide vs their eng team?**  
+We provide register, stamps, notebook, Check, and the Stamp/Check APIs. Their eng plugs Stamp into their generate pipeline and ships the stamped file.
+
+## Rebuild the PPT
+
+```bash
+npm install --no-save pptxgenjs
+node scripts/build-pitch-pptx.mjs
+```
+
 ## Demo checklist
 
-- [ ] Site open (Vercel or laptop)
-- [ ] Maker with model + API key ready
-- [ ] One fresh image ready
+- [ ] Vercel URL open (or laptop backup)
+- [ ] PPT open: `docs/ModelLedger-Pitch.pptx`
+- [ ] Fresh Maker ready (or register live)
+- [ ] One unstamped photo in `demo-photos/01-unstamped/`
 - [ ] Create → Check Trusted works once
-- [ ] Know one line: “API key comes with the company; website Stamp is the click demo”
+- [ ] Closing line memorized: “They generate. We stamp. Anyone checks.”
