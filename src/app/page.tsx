@@ -21,8 +21,11 @@ export default function Home() {
           <Link href="/check" className="button">
             Check a picture
           </Link>
+          <Link href="/developers" className="button-quiet">
+            Company API
+          </Link>
           <Link href="/create" className="button-quiet">
-            Stamp your work
+            Stamp demo
           </Link>
         </div>
 

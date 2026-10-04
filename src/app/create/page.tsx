@@ -1,7 +1,13 @@
 import { ledgerConfigured } from "@/lib/ledger";
 import type { CategoryId } from "@/lib/categories";
 import { createClient } from "@/lib/supabase/server";
-import { CreateForm, type CompanyModel, type RecentLine, type StampCompany } from "./create-form";
+import {
+  CreateForm,
+  type ApiKeyRow,
+  type CompanyModel,
+  type RecentLine,
+  type StampCompany,
+} from "./create-form";
 
 export default async function CreatePage() {
   const supabase = await createClient();
@@ -10,6 +16,7 @@ export default async function CreatePage() {
 
   let companies: StampCompany[] = [];
   let models: CompanyModel[] = [];
+  let apiKeys: ApiKeyRow[] = [];
   let recentLines: RecentLine[] = [];
 
   if (user) {
@@ -44,7 +51,7 @@ export default async function CreatePage() {
     if (companies.length > 0) {
       const companyIds = companies.map((company) => company.id);
       const byId = new Map(companies.map((company) => [company.id, company.name]));
-      const [{ data: lines }, { data: modelRows }] = await Promise.all([
+      const [{ data: lines }, { data: modelRows }, { data: keyRows }] = await Promise.all([
         supabase
           .from("picture_lines")
           .select("line_id, action, created_at, company_id")
@@ -56,6 +63,11 @@ export default async function CreatePage() {
           .select("id, company_id, name")
           .in("company_id", companyIds)
           .order("created_at", { ascending: true }),
+        supabase
+          .from("company_api_keys")
+          .select("id, company_id, key_prefix, created_at, revoked_at")
+          .in("company_id", companyIds)
+          .order("created_at", { ascending: false }),
       ]);
 
       recentLines = (lines ?? []).map((line) => ({
@@ -69,6 +81,14 @@ export default async function CreatePage() {
         id: row.id as string,
         companyId: row.company_id as string,
         name: row.name as string,
+      }));
+
+      apiKeys = (keyRows ?? []).map((row) => ({
+        id: row.id as string,
+        companyId: row.company_id as string,
+        keyPrefix: row.key_prefix as string,
+        createdAt: row.created_at as string,
+        revoked: Boolean(row.revoked_at),
       }));
     }
   }
@@ -86,6 +106,7 @@ export default async function CreatePage() {
         email={user?.email ?? null}
         companies={companies}
         models={models}
+        apiKeys={apiKeys}
         recentLines={recentLines}
         ledgerReady={ledgerConfigured()}
       />

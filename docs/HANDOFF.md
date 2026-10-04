@@ -42,7 +42,7 @@ Maker re-stamp of an already-stamped file is rejected.
 | Public check | `/check` | No |
 | Company workspace | `/register`, `/create` | Yes (Sign in). Register = add company while signed in |
 
-Header: **Check** (anyone) · **Companies** (`/register`) · **Stamp** (`/create`) · Sign in / email + Sign out.
+Header: **Check** · **Stamp** · **Companies** · **API** (`/developers`) · Sign in / Sign out.
 
 No admin portal. Keeper wallet = admin.
 
@@ -96,6 +96,15 @@ Editor/Publisher upload of stamped PNG was passed through `normalizeToPng` (Shar
 - Table `company_models` (per company). Makers must approve ≥1 model at Register.
 - Stamp stores `picture_lines.ai_model` + `model_id`. Check shows company, model, stamped time.
 - Add more models on `/create` → Approved AI models.
+
+## Company API
+
+- Table `company_api_keys` (hashed). Create key on `/create` → Company API key (shown once).
+- `POST /api/v1/stamp` — Bearer `ml_…`, form fields: `picture`, `model`, `sentence`, optional `usePrepared=true`
+- `POST /api/v1/check` — public, form field `picture`
+- `GET /api/v1/models` — Bearer key, list approved models
+- Docs page: `/developers`
+- Shared stamp logic: `src/lib/stamp-core.ts`
 
 ## Next
 

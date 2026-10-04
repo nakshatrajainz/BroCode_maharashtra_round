@@ -5,10 +5,12 @@ import { useActionState, useEffect, useMemo, useRef, useState, type ReactNode } 
 import { categoryTitle, type CategoryId } from "@/lib/categories";
 import {
   addApprovedModel,
+  createCompanyApiKey,
   revealSealedSentence,
   revokeCompanyStamp,
   submitStamp,
   type AddModelState,
+  type ApiKeyState,
   type CreateState,
   type RevealState,
   type RevokeState,
@@ -29,6 +31,14 @@ export type CompanyModel = {
   name: string;
 };
 
+export type ApiKeyRow = {
+  id: string;
+  companyId: string;
+  keyPrefix: string;
+  createdAt: string;
+  revoked: boolean;
+};
+
 export type RecentLine = {
   lineId: string;
   action: CategoryId;
@@ -40,6 +50,7 @@ const initialCreate: CreateState = {};
 const initialReveal: RevealState = {};
 const initialRevoke: RevokeState = {};
 const initialAddModel: AddModelState = {};
+const initialApiKey: ApiKeyState = {};
 
 const roles: { id: CategoryId; step: string; title: string; needs: string; does: string }[] = [
   {
@@ -69,17 +80,20 @@ export function CreateForm({
   email,
   companies: companiesProp,
   models: modelsProp,
+  apiKeys: apiKeysProp,
   recentLines: recentLinesProp,
   ledgerReady,
 }: {
   email: string | null;
   companies?: StampCompany[];
   models?: CompanyModel[];
+  apiKeys?: ApiKeyRow[];
   recentLines?: RecentLine[];
   ledgerReady: boolean;
 }) {
   const companies = companiesProp ?? [];
   const models = modelsProp ?? [];
+  const apiKeys = apiKeysProp ?? [];
   const recentLines = recentLinesProp ?? [];
 
   const makers = useMemo(
@@ -374,6 +388,8 @@ export function CreateForm({
 
       <ModelsPanel companies={companies.filter((company) => company.allowed)} models={models} />
 
+      <ApiKeyPanel companies={companies.filter((company) => company.allowed)} apiKeys={apiKeys} />
+
       <details className="card p-5">
         <summary className="cursor-pointer font-medium">Advanced: reveal sentence / revoke stamp</summary>
         <div className="mt-5 grid gap-6">
@@ -457,6 +473,82 @@ function CreatedResult({ created }: { created: NonNullable<CreateState["created"
           Open Check
         </Link>
       </div>
+    </section>
+  );
+}
+
+function ApiKeyPanel({
+  companies,
+  apiKeys,
+}: {
+  companies: StampCompany[];
+  apiKeys: ApiKeyRow[];
+}) {
+  const [state, formAction, pending] = useActionState(createCompanyApiKey, initialApiKey);
+  if (companies.length === 0) return null;
+
+  const active = apiKeys.filter((key) => !key.revoked);
+
+  return (
+    <section className="card grid gap-4 p-5">
+      <div>
+        <h3 className="font-serif text-xl">Company API key</h3>
+        <p className="mt-1 text-sm leading-6 text-muted">
+          Real product path: your app calls <span className="font-mono text-xs">/api/v1/stamp</span>{" "}
+          with this key. The website form is only the demo remote control.
+        </p>
+      </div>
+      {active.length > 0 ? (
+        <ul className="grid gap-2 text-sm">
+          {active.map((key) => {
+            const company = companies.find((item) => item.id === key.companyId);
+            return (
+              <li
+                key={key.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-paper/70 px-4 py-3"
+              >
+                <span className="font-mono text-xs">{key.keyPrefix}…</span>
+                <span className="text-xs text-muted">{company?.name ?? "Company"}</span>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p className="text-sm text-muted">No live API key yet. Create one for the demo curl call.</p>
+      )}
+      <form action={formAction} className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+        <label className="grid gap-2 text-sm">
+          <span className="font-medium">Company</span>
+          <select name="companyId" className="field" defaultValue={companies[0]?.id} required>
+            {companies.map((company) => (
+              <option key={company.id} value={company.id}>
+                {company.name} · {categoryTitle(company.category)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button type="submit" className="button" disabled={pending}>
+          {pending ? "Creating…" : "Create API key"}
+        </button>
+      </form>
+      {state.error ? (
+        <Alert tone="danger" title="API key failed">
+          {state.error}
+        </Alert>
+      ) : null}
+      {state.created ? (
+        <div className="result-in rounded-2xl border border-leaf/30 bg-leaf-soft px-4 py-4 text-sm leading-6">
+          <p className="font-semibold text-leaf">Copy this key now — it is shown once.</p>
+          <p className="mt-2 break-all font-mono text-xs text-ink">{state.created.apiKey}</p>
+          <p className="mt-2 text-ink/80">
+            For {state.created.companyName}. Open{" "}
+            <Link href="/developers" className="underline underline-offset-2">
+              Developers
+            </Link>{" "}
+            for the curl demo.
+          </p>
+        </div>
+      ) : null}
     </section>
   );
 }

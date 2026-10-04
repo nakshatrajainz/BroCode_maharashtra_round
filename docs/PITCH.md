@@ -1,67 +1,90 @@
-# ModelLedger — 5 min demo + 2 min Q&A
+# ModelLedger — simple 5-min pitch (say it like a first-year)
 
-Timing target: speak at **12:00**. Keep PPT optional; this script + live site is enough.
+No heavy jargon. If a word feels fancy, skip it.
 
-## One-line
+## The idea in one breath
 
-ModelLedger proves the story of an AI picture on a public BNB notebook: which allowed company stamped it, which model made it, what happened next, and whether the file still matches.
+People can fake “we made this AI picture.”
+ModelLedger lets a real company put a stamp on the picture when they make / edit / post it.
+Later, anyone uploads the file and we say if the story is real.
 
-## 5-minute rundown
+Three answers only:
 
-| Min | What |
+- **Trusted** — real stamp, file still matches
+- **Self-asserted** — someone claimed a name, but no real stamp
+- **Unverifiable** — we cannot prove the story
+
+## Car-plate story (use this)
+
+Every car has a number plate.
+The plate alone is not enough — the RTO also has a register.
+
+Same here:
+
+1. We stick a small secret id inside the picture (like a plate).
+2. We write a public notebook line: which company, which AI model, what step, what time.
+3. The company must be allowed to stamp (like a registered plate issuer).
+4. If someone changes the picture too much, or sticks an old plate on a new photo, Check says Unverifiable.
+
+You do **not** need to say “hash”, “keccak”, or “signature” unless a judge asks.
+
+If they ask “how do you know it wasn’t edited?”:
+> We store a fingerprint of the file. If the file changes a lot, the fingerprint won’t match.
+
+If they ask “why blockchain?”:
+> So the notebook is public and hard to quietly rewrite. Judges can look outside our website.
+
+## 5 minutes
+
+| Time | Say / show |
 |---|---|
-| 0:00–0:45 | Hook + problem |
-| 0:45–1:30 | What we built (Trusted / Self-asserted / Unverifiable) |
-| 1:30–4:00 | Live demo |
-| 4:00–4:45 | Why BNB + product angle (company API) |
-| 4:45–5:00 | Close |
+| 0:00–0:40 | Problem: anyone can claim an AI image |
+| 0:40–1:20 | We stamp the story: company + model + time. Check gives one clear answer |
+| 1:20–3:40 | **Live demo** (below) |
+| 3:40–4:40 | Real product is the **API**, website is the demo remote |
+| 4:40–5:00 | Close + thank you |
 
-### Script
+### What to say (almost word-for-word)
 
-**Hook (45s)**  
-AI images are everywhere. Anyone can claim “our model made this.” There is no public way to prove which company created it, which model, who edited it, or whether the file was swapped.
+**Problem**  
+AI pictures are everywhere. Anyone can download one and say “our company made this.” There is no simple public way to check.
 
-**Product (45s)**  
-ModelLedger is a stamp notebook on BNB Smart Chain. Allowed companies — Maker, Editor, Publisher — pre-approve their AI models and stamp each step. Anyone opens Check, uploads the file, and gets one answer: Trusted, Self-asserted, or Unverifiable — with company, model, and stamp time.
+**What we built**  
+ModelLedger is a stamp notebook. Allowed companies stamp a picture when they create it, edit it, or post it. They also say which AI model they used. Later, anyone opens Check, uploads the file, and gets Trusted, Self-asserted, or Unverifiable.
 
-**Demo (2.5 min)** — do not narrate every click  
-1. Open Check first (public, no login) — show the three answers.  
-2. Sign in → Companies: Maker with approved model (e.g. Flux 1.1).  
-3. Stamp → Create: pick company + model → stamp → download.  
-4. (If time) Edit → Publish with the downloaded PNG.  
-5. Check: upload download → **Trusted** with story, model, times.  
-6. Optional punch: try to Create again on the same file → rejected (origin cannot be forged).
+**Demo**  
+1. Open **Check** — show the three colored answers.  
+2. Sign in → **Companies** — Maker with an approved model (Flux 1.1).  
+3. **Stamp → Create** — pick company + model → stamp → download.  
+4. If time: Edit → Publish with that same download.  
+5. **Check** — upload download → Trusted, show company + model + time.  
+6. Punch line: try Create again on the same file → blocked. You can’t fake a new origin.  
+7. **API** page — show curl: real companies call `/api/v1/stamp`, people/apps call `/api/v1/check`.
 
-**Why blockchain + closer (1 min)**  
-The notebook is public and hard to rewrite. Private stamp keys stay on the server; the chain holds the proof. Today’s website is the demo. The real product is a company stamp API inside create/edit/publish pipelines — consumers only ever use Check.
+**Close**  
+The website is how we demo. The product is the company API inside their create/edit/publish pipeline. Consumers only ever check.
 
-## Likely Q&A (2 min)
+## Easy Q&A
 
-**Why not just metadata in the PNG?**  
-Metadata is easy to strip or fake. We fingerprint the file, keep a hidden id, and write the line on a public notebook.
+**Do you detect if an image is AI?**  
+No. We don’t guess from pixels. We check the stamp story.
 
-**Does Check guess if an image is AI?**  
-No. We do not classify “looks synthetic.” We verify the stamped story.
+**What if two companies claim the same picture?**  
+Unverifiable. The story is unclear.
 
-**What if two makers claim the same picture?**  
-Unverifiable — the story is ambiguous.
+**What if the company is kicked out later?**  
+Old trusted stamps stay. New stamps after that don’t count as Trusted.
 
-**What if a company is revoked?**  
-Old Trusted lines stay. New lines after revoke do not count as Trusted.
+**Is the private prompt public?**  
+No. Only the company can open their sealed note later.
 
-**Where do models come from?**  
-Companies pre-approve models. In production the stamp API sends company + model + time automatically; the demo form is the manual stand-in.
+**Why not only put text inside the PNG?**  
+Anyone can delete or copy that text. The public notebook + company stamp is the real proof.
 
-**Why BNB?**  
-Public notebook, cheap testnet gas for the hackathon, chain id 97.
+## Demo checklist
 
-**Is the private prompt on-chain?**  
-Only a hash. The sealed sentence stays on the server; the company can reveal it later.
-
-## Demo checklist (before 12:00)
-
-- [ ] Public Vercel URL opens
-- [ ] Fresh Maker (with model) registered after ledger deploy (`chain_tx` set)
-- [ ] Create → download → Check = Trusted (model + time visible)
-- [ ] Laptop localhost backup ready
-- [ ] One prepared unstamped PNG ready
+- [ ] Site open (Vercel or laptop)
+- [ ] Maker with model + API key ready
+- [ ] One fresh image ready
+- [ ] Create → Check Trusted works once
+- [ ] Developers page open in a tab for the API slide/moment
